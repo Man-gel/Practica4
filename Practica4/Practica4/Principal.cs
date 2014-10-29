@@ -10,13 +10,14 @@ using System;
 
 namespace Practica4
 {
-	/// <summary>
-	/// Description of Principal.
-	/// </summary>
+	
 	public class Principal
 	{
 		public static void Main (String[] args)
 		{
+			LectorDeArchivos lector = new LectorDeArchivos("C:\\Users\\Usuario\\Desktop\\csvMSDOS.csv");
+			lector.leer();
+			Console.WriteLine();
 			Console.WriteLine("Hola Mundo!");
 			Console.ReadKey(true);
 		}
