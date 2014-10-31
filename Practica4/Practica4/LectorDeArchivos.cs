@@ -9,29 +9,28 @@ namespace Practica4
 		private String path;
 		public Queue filaDepalabras;
 		
-		public LectorDeArchivos(String ruta)
+		public LectorDeArchivos(String rutaArchivo)
 		{
-			this.path = ruta;
+			this.path = rutaArchivo;
 			this.filaDepalabras = new Queue();
 		}
 		
 		public void leer ()
 		{
 			String linea;
+			StreamReader lector;
 			if(File.Exists(path))
 			{
 				try
 				{
-					StreamReader lector = new StreamReader(this.path);
-					linea = lector.ReadLine();
-					Char[] caracteres = linea.ToCharArray();
-					ingresarAFila(caracteres,filaDepalabras);
-					while(lector.Peek()>1)
+					lector = new StreamReader(this.path);
+					do
 					{
 						linea = lector.ReadLine();
-						caracteres = linea.ToCharArray();
-						ingresarAFila(caracteres,filaDepalabras);
-					}
+						filaDepalabras.Enqueue(linea);
+						//Console.WriteLine(linea);
+					} 
+					while(lector.Peek() > -1);
 					lector.Close();
 					
 				}
@@ -41,33 +40,29 @@ namespace Practica4
 				}
 				finally
 				{
-					Console.WriteLine("Cerrando la lectura");
+					Console.WriteLine("Cerrando la lectura...");
 					Console.WriteLine();
 				}
 				imprimirArchivoCSV(filaDepalabras);
 			}
 		}
 		
-		private void ingresarAFila(Char[] arregloDeChars, Queue fila)
+		private void ingresarAFila(String[] arregloDeLineas, Queue fila)
 		{
-			foreach(Char caracter in arregloDeChars)
+			foreach(String linea in arregloDeLineas)
 			{
-				fila.Enqueue(caracter);
-				
+				fila.Enqueue(linea);
 			}
-			
-			//foreach(Char caracter in arregloDeChars)
-			
-			//	if( Char.IsLetterOrDigit(caracter) || Char.IsPunctuation(caracter) )
-			//		filaDepalabras.Enqueue( caracter );
-			//	else if(caracter.Equals( (Char)'\r' ) || caracter.Equals( (Char)'\n') )
-			//		filaDepalabras.Enqueue("$");
 		}
 		
 		private void imprimirArchivoCSV(Queue filaAimprimir)
 		{
-			foreach(Char simbolo in filaAimprimir)
-					Console.Write("{0}",simbolo);
+			foreach(String linea in filaAimprimir)
+			{
+				
+				Console.WriteLine(linea);
+			}
+				
 		}
 	}
 }

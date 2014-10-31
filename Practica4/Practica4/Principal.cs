@@ -13,10 +13,9 @@ namespace Practica4
 	{
 		public static void Main (String[] args)
 		{
-			LectorDeArchivos lector = new LectorDeArchivos("ejemploCSV.csv");
+			LectorDeArchivos lector = new LectorDeArchivos("csvMacintosh.csv");
 			lector.leer();
 			Console.WriteLine();
-			Console.WriteLine("Hola Mundo!");
 			Console.ReadKey(true);
 		}
 	}
