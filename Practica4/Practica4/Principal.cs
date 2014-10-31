@@ -7,16 +7,15 @@
  * To change this template use Tools | Options | Coding | Edit Standard Headers.
  */
 using System;
-
 namespace Practica4
 {
-	/// <summary>
-	/// Description of Principal.
-	/// </summary>
 	public class Principal
 	{
 		public static void Main (String[] args)
 		{
+			LectorDeArchivos lector = new LectorDeArchivos("ejemploCSV.csv");
+			lector.leer();
+			Console.WriteLine();
 			Console.WriteLine("Hola Mundo!");
 			Console.ReadKey(true);
 		}
