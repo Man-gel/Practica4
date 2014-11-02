@@ -7,30 +7,35 @@ namespace Practica4
 	public class LectorDeArchivos
 	{
 		private String path;
-		public Queue filaDepalabras;
+		private ArrayList listaDeCampos;
+		private Hashtable tabla;
+		private ArrayList listaDeLLaves;
 		
 		public LectorDeArchivos(String rutaArchivo)
 		{
 			this.path = rutaArchivo;
-			this.filaDepalabras = new Queue();
+			this.listaDeCampos = new ArrayList();
+			this.tabla = new Hashtable();
+			this.listaDeLLaves = new ArrayList();
+			
 		}
 		
 		public void leer ()
 		{
 			String linea;
 			StreamReader lector;
-			if(File.Exists(path))
+			if(File.Exists(this.path))
 			{
 				try
 				{
 					lector = new StreamReader(this.path);
-					do
+					linea = lector.ReadLine();
+					this.listaDeCampos = convertirLineaEnCampos( linea );
+					while(lector.Peek() > -1)
 					{
 						linea = lector.ReadLine();
-						filaDepalabras.Enqueue(linea);
-						Console.WriteLine(linea);
+						this.listaDeCampos = convertirLineaEnCampos( linea );
 					}
-					while(lector.Peek() > -1);
 					lector.Close();
 					
 				}
@@ -43,40 +48,98 @@ namespace Practica4
 					Console.WriteLine("Cerrando la lectura...");
 					Console.WriteLine();
 				}
-				imprimirArchivoCSV(filaDepalabras);
-			} 
+				imprimirArchivoCSV();
+			}
 			else
 				Console.WriteLine("ERROR: El nombre de archivo no es correcto o no existe.");
 		}
 		
-		private void ingresarAFila(String[] arregloDeLineas, Queue fila)
+		
+		private ArrayList convertirLineaEnCampos(String lineaAconvertir )
 		{
-			foreach(String linea in arregloDeLineas)
+			ArrayList arraylistDeCampos = new ArrayList();
+			String nuevaLinea ="";
+			int contadorComas = 0;
+			String key ="";
+			Char[] arregloChars = lineaAconvertir.ToCharArray();
+			
+			foreach(Char simbolo in arregloChars)
 			{
-				fila.Enqueue(linea);
+				if( !simbolo.Equals(',') )
+					nuevaLinea += simbolo;
+				else
+				{
+					if(contadorComas == 0){
+						key = nuevaLinea;
+						this.listaDeLLaves.Add(key);
+						contadorComas++;
+						nuevaLinea ="";
+					}
+					arraylistDeCampos.Add(nuevaLinea);
+					contadorComas++;
+				}
 			}
+			this.tabla.Add(key,arraylistDeCampos);
+			return arraylistDeCampos;
 		}
 		
-		private void imprimirArchivoCSV(Queue filaAimprimir)
+		private void imprimirBordesdeTabla()
+		{
+			Console.Write("+");			
+			for(int cont = 0; cont < obtenerAnchoDeColumnaPrimaria()+2; cont++)
+				Console.Write("-");
+			
+			Console.Write("+");
+			Console.WriteLine();
+		}
+		
+		private int obtenerAnchoDeColumnaPrimaria()
+		{
+			int ancho = 0;
+			ICollection keyColl = this.tabla.Keys;
+			String cadenaMayor = "";
+			foreach(Object valorLLaveTabla in keyColl)
+			{
+				if( valorLLaveTabla.ToString().Length > cadenaMayor.Length )
+					cadenaMayor = valorLLaveTabla.ToString();
+				ancho= cadenaMayor.Length;
+			}
+			return ancho;
+		}
+		
+		private void imprimirArchivoCSV()
 		{
 			Console.WriteLine("Imprimiendo...");
 			Console.WriteLine();
-			foreach(String linea in filaAimprimir)
-			{						
-				Char[] arregloChars = linea.ToCharArray();
-				String nuevaLinea = "";
-				
-				foreach(Char simbolo in arregloChars)
-				{
-					if( !simbolo.Equals(',') )
-						nuevaLinea += simbolo;
-					else
-						nuevaLinea = nuevaLinea + " | ";
+			for(int indiceListaDeLLaves = 0; indiceListaDeLLaves< this.listaDeLLaves.Count; indiceListaDeLLaves++)
+			{
+				imrimirColumnaLLavesPrimarias(indiceListaDeLLaves);
+			}
+		}
+		
+		private void imrimirColumnaLLavesPrimarias(int indice)
+		{
+			String nuevaLinea = "| ";
+			ICollection keyColl = this.tabla.Keys;
+			String espaciado = "";
+			int espaciosDeLinea = obtenerAnchoDeColumnaPrimaria();
+			
+			for(int i = 0; i < espaciosDeLinea; i++)
+				espaciado += " ";
+			foreach(Object valorLLaveTabla in keyColl){
+				if( this.listaDeLLaves[indice].Equals(valorLLaveTabla) ){
+					
+					if( this.listaDeLLaves[indice].ToString().Length < espaciado.Length ){
+						nuevaLinea += valorLLaveTabla + espaciado +"|";
+					}else
+						nuevaLinea += valorLLaveTabla + " |";
+					
 				}
-					Console.WriteLine(nuevaLinea);
 			}
 			
-			
+			imprimirBordesdeTabla();
+			Console.WriteLine(nuevaLinea);
 		}
+		
 	}
 }
