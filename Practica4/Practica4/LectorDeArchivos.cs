@@ -7,14 +7,12 @@ namespace Practica4
 	public class LectorDeArchivos
 	{
 		private String path;
-		private ArrayList listaDeCampos;
 		private Hashtable tabla;
 		private ArrayList listaDeLLaves;
 		
 		public LectorDeArchivos(String rutaArchivo)
 		{
 			this.path = rutaArchivo;
-			this.listaDeCampos = new ArrayList();
 			this.tabla = new Hashtable();
 			this.listaDeLLaves = new ArrayList();
 			
@@ -30,11 +28,11 @@ namespace Practica4
 				{
 					lector = new StreamReader(this.path);
 					linea = lector.ReadLine();
-					this.listaDeCampos = convertirLineaEnCampos( linea );
+					convertirLineaEnCampos( linea );
 					while(lector.Peek() > -1)
 					{
 						linea = lector.ReadLine();
-						this.listaDeCampos = convertirLineaEnCampos( linea );
+						convertirLineaEnCampos( linea );
 					}
 					lector.Close();
 					
@@ -55,54 +53,67 @@ namespace Practica4
 		}
 		
 		
-		private ArrayList convertirLineaEnCampos(String lineaAconvertir )
+		private void convertirLineaEnCampos(String lineaAconvertir )
 		{
 			ArrayList arraylistDeCampos = new ArrayList();
-			String nuevaLinea ="";
+			String nuevaPalabra ="";
 			int contadorComas = 0;
 			String key ="";
-			Char[] arregloChars = lineaAconvertir.ToCharArray();
-			
-			foreach(Char simbolo in arregloChars)
+			String[] linea = lineaAconvertir.Split(new char[] {','});
+			foreach(String palabra in linea)
 			{
-				if( !simbolo.Equals(',') )
-					nuevaLinea += simbolo;
-				else
-				{
-					if(contadorComas == 0){
-						key = nuevaLinea;
-						this.listaDeLLaves.Add(key);
-						contadorComas++;
-						nuevaLinea ="";
-					}
-					arraylistDeCampos.Add(nuevaLinea);
+				nuevaPalabra += palabra;
+				if( contadorComas == 0){
+					key = nuevaPalabra;
+					this.listaDeLLaves.Add(key);
+					nuevaPalabra = "";
+					contadorComas++;
+				}else{
+					arraylistDeCampos.Add(nuevaPalabra);
+					nuevaPalabra = "";
 					contadorComas++;
 				}
 			}
 			this.tabla.Add(key,arraylistDeCampos);
-			return arraylistDeCampos;
 		}
 		
 		private void imprimirBordesdeTabla()
 		{
-			Console.Write("+");			
-			for(int cont = 0; cont < obtenerAnchoDeColumnaPrimaria()+2; cont++)
-				Console.Write("-");
+			bool esColumnaPrimaria = true;
+			Console.Write("+");
+			ICollection val = this.tabla.Values;
+				for(int cont = 0; cont < obtenerAnchoDeColumna(esColumnaPrimaria) +2; cont++)
+					Console.Write("-");
+			Console.Write("+");
+			esColumnaPrimaria = false;
 			
+				for(int cont = 0; cont < obtenerAnchoDeColumna(esColumnaPrimaria) +2; cont++)
+					Console.Write("-");
 			Console.Write("+");
 			Console.WriteLine();
 		}
 		
-		private int obtenerAnchoDeColumnaPrimaria()
+		private int obtenerAnchoDeColumna(bool esTablaPrimaria)
 		{
 			int ancho = 0;
 			ICollection keyColl = this.tabla.Keys;
+			ICollection valColl = this.tabla.Values;
 			String cadenaMayor = "";
-			foreach(Object valorLLaveTabla in keyColl)
-			{
-				if( valorLLaveTabla.ToString().Length > cadenaMayor.Length )
+			
+			if( esTablaPrimaria){
+				foreach(Object valorLLaveTabla in keyColl)
+					if( valorLLaveTabla.ToString().Length > cadenaMayor.Length ){
 					cadenaMayor = valorLLaveTabla.ToString();
-				ancho= cadenaMayor.Length;
+					ancho= cadenaMayor.Length;
+				}
+				
+			}else{
+				foreach(ArrayList valorEnTabla in valColl)
+					foreach(String palabra in valorEnTabla)
+						if( palabra.Length > cadenaMayor.Length ){
+					cadenaMayor = palabra;
+					ancho= cadenaMayor.Length;
+				}
 			}
 			return ancho;
 		}
@@ -111,34 +122,50 @@ namespace Practica4
 		{
 			Console.WriteLine("Imprimiendo...");
 			Console.WriteLine();
-			for(int indiceListaDeLLaves = 0; indiceListaDeLLaves< this.listaDeLLaves.Count; indiceListaDeLLaves++)
-			{
-				imrimirColumnaLLavesPrimarias(indiceListaDeLLaves);
-			}
+			bool esPrimaryCol = true;
+			imprimirBordesdeTabla();
+				for(int indiceListaDeLLaves = 0; indiceListaDeLLaves< this.listaDeLLaves.Count; indiceListaDeLLaves++)
+					imprimirColumna(indiceListaDeLLaves,esPrimaryCol);
+				esPrimaryCol= false;
+				imprimirBordesdeTabla();
 		}
 		
-		private void imrimirColumnaLLavesPrimarias(int indice)
+		private void imprimirColumna(int indice, bool esPrimaryKey)
 		{
 			String nuevaLinea = "| ";
+			bool esTablaPrimaria = true;
 			ICollection keyColl = this.tabla.Keys;
-			String espaciado = "";
-			int espaciosDeLinea = obtenerAnchoDeColumnaPrimaria();
+			ICollection valueColl = this.tabla.Values;
+			String espaciadoMaximo = "";
+			int espaciosDeLinea = obtenerAnchoDeColumna(esTablaPrimaria);
+			if(indice == 1)
+				imprimirBordesdeTabla();
 			
-			for(int i = 0; i < espaciosDeLinea; i++)
-				espaciado += " ";
 			foreach(Object valorLLaveTabla in keyColl){
-				if( this.listaDeLLaves[indice].Equals(valorLLaveTabla) ){
-					
-					if( this.listaDeLLaves[indice].ToString().Length < espaciado.Length ){
-						nuevaLinea += valorLLaveTabla + espaciado +"|";
-					}else
-						nuevaLinea += valorLLaveTabla + " |";
-					
-				}
+				for(int i = valorLLaveTabla.ToString().Length; i < espaciosDeLinea; i++)
+					espaciadoMaximo += " ";
+				
+				if( this.listaDeLLaves[indice].Equals(valorLLaveTabla) )
+					nuevaLinea +=  valorLLaveTabla + espaciadoMaximo + " |";
+				
+				espaciadoMaximo ="";
 			}
-			
-			imprimirBordesdeTabla();
 			Console.WriteLine(nuevaLinea);
+			if(indice == this.listaDeLLaves.Count-1)
+				imprimirBordesdeTabla();
+		}
+		
+		
+		private String obtenerColumnaApartirDeArrayList( )
+		{
+			ICollection valCollection = this.tabla.Values;
+			int indicePalabra = 0;
+			String campo = "";
+			
+			foreach(ArrayList listaDeValores in valCollection)
+				foreach(String palabra in listaDeValores)
+					campo = palabra;
+			return campo;
 		}
 		
 	}
