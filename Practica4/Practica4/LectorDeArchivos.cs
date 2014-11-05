@@ -15,7 +15,6 @@ namespace Practica4
 			this.path = rutaArchivo;
 			this.tabla = new Hashtable();
 			this.listaDeLLaves = new ArrayList();
-			
 		}
 		
 		public void leer ()
@@ -49,7 +48,7 @@ namespace Practica4
 				imprimirArchivoCSV();
 			}
 			else
-				Console.WriteLine("ERROR: El nombre de archivo no es correcto o no existe.");
+				Console.WriteLine("ERROR: No se encuentra el archivo porque no existe o el nombre no es correcto.");
 		}
 		
 		
@@ -79,41 +78,43 @@ namespace Practica4
 		
 		private void imprimirBordesdeTabla()
 		{
-			bool esColumnaPrimaria = true;
+			int numeroDeColumnas = obtenerNumeroDeColumnas();
 			Console.Write("+");
-			ICollection val = this.tabla.Values;
-				for(int cont = 0; cont < obtenerAnchoDeColumna(esColumnaPrimaria) +2; cont++)
+			for(int columna = 0; columna < numeroDeColumnas; columna++){
+				int anchoColumna = obtenerAnchoDeColumna(columna)+2;
+				for(int cont = 0; cont < anchoColumna; cont++)
 					Console.Write("-");
-			Console.Write("+");
-			esColumnaPrimaria = false;
-			
-				for(int cont = 0; cont < obtenerAnchoDeColumna(esColumnaPrimaria) +2; cont++)
-					Console.Write("-");
-			Console.Write("+");
+				Console.Write("+");
+			}
 			Console.WriteLine();
 		}
 		
-		private int obtenerAnchoDeColumna(bool esTablaPrimaria)
+		private int obtenerAnchoDeColumna(int columnaAcalcular)
 		{
 			int ancho = 0;
 			ICollection keyColl = this.tabla.Keys;
 			ICollection valColl = this.tabla.Values;
 			String cadenaMayor = "";
+			bool esTablaPrimaria;
+			if(columnaAcalcular > 0)
+				esTablaPrimaria = false;
+			else
+				esTablaPrimaria = true;
 			
 			if( esTablaPrimaria){
 				foreach(Object valorLLaveTabla in keyColl)
-					if( valorLLaveTabla.ToString().Length > cadenaMayor.Length ){
-					cadenaMayor = valorLLaveTabla.ToString();
-					ancho= cadenaMayor.Length;
-				}
+					if( valorLLaveTabla.ToString().Length > cadenaMayor.Length )
+						cadenaMayor = valorLLaveTabla.ToString();
+				
+				ancho= cadenaMayor.Length;
 				
 			}else{
+				cadenaMayor = "";
 				foreach(ArrayList valorEnTabla in valColl)
-					foreach(String palabra in valorEnTabla)
-						if( palabra.Length > cadenaMayor.Length ){
-					cadenaMayor = palabra;
-					ancho= cadenaMayor.Length;
-				}
+					if( valorEnTabla[columnaAcalcular-1].ToString().Length > cadenaMayor.Length )
+						cadenaMayor = valorEnTabla[columnaAcalcular-1].ToString();
+				
+				ancho= cadenaMayor.Length;
 			}
 			return ancho;
 		}
@@ -122,51 +123,70 @@ namespace Practica4
 		{
 			Console.WriteLine("Imprimiendo...");
 			Console.WriteLine();
-			bool esPrimaryCol = true;
+			ICollection valuesCol = this.tabla.Values;
 			imprimirBordesdeTabla();
-				for(int indiceListaDeLLaves = 0; indiceListaDeLLaves< this.listaDeLLaves.Count; indiceListaDeLLaves++)
-					imprimirColumna(indiceListaDeLLaves,esPrimaryCol);
-				esPrimaryCol= false;
-				imprimirBordesdeTabla();
+			for(int indiceListaDeLLaves = 0; indiceListaDeLLaves< this.listaDeLLaves.Count; indiceListaDeLLaves++){
+				imprimirCampoDeColumnaPrimaria(indiceListaDeLLaves);
+				imprimirRestoDeTupla( indiceListaDeLLaves);
+				if(indiceListaDeLLaves == 0)
+					imprimirBordesdeTabla();
+			}
+			imprimirBordesdeTabla();
 		}
 		
-		private void imprimirColumna(int indice, bool esPrimaryKey)
+		private void imprimirCampoDeColumnaPrimaria(int renglon)
 		{
 			String nuevaLinea = "| ";
-			bool esTablaPrimaria = true;
 			ICollection keyColl = this.tabla.Keys;
-			ICollection valueColl = this.tabla.Values;
 			String espaciadoMaximo = "";
-			int espaciosDeLinea = obtenerAnchoDeColumna(esTablaPrimaria);
-			if(indice == 1)
-				imprimirBordesdeTabla();
-			
+			int numeroDeColumnas = obtenerNumeroDeColumnas();
+			int espaciosDeLinea = obtenerAnchoDeColumna(0);
+		
 			foreach(Object valorLLaveTabla in keyColl){
 				for(int i = valorLLaveTabla.ToString().Length; i < espaciosDeLinea; i++)
 					espaciadoMaximo += " ";
 				
-				if( this.listaDeLLaves[indice].Equals(valorLLaveTabla) )
+				if( this.listaDeLLaves[renglon].Equals(valorLLaveTabla) )
 					nuevaLinea +=  valorLLaveTabla + espaciadoMaximo + " |";
 				
 				espaciadoMaximo ="";
-			}
-			Console.WriteLine(nuevaLinea);
-			if(indice == this.listaDeLLaves.Count-1)
-				imprimirBordesdeTabla();
+			}			
+			Console.Write(nuevaLinea);
 		}
 		
 		
-		private String obtenerColumnaApartirDeArrayList( )
+		private void imprimirRestoDeTupla(int tupla)
 		{
-			ICollection valCollection = this.tabla.Values;
-			int indicePalabra = 0;
-			String campo = "";
+			String restoTupla = " ";
+			int numeroDeColumnas = obtenerNumeroDeColumnas();
+			String espaciosEnBlanco = "";
+			String nombreLLave = this.listaDeLLaves[tupla].ToString();
+			ArrayList lista = (ArrayList)this.tabla[nombreLLave];
 			
-			foreach(ArrayList listaDeValores in valCollection)
-				foreach(String palabra in listaDeValores)
-					campo = palabra;
-			return campo;
+			foreach(String palabra in lista)
+			{
+				int anchoColumna = obtenerAnchoDeColumna( (lista.IndexOf(palabra)+1) );
+				if(palabra.Length < anchoColumna){
+					for(int espacio = palabra.Length; espacio < anchoColumna;espacio++)
+						espaciosEnBlanco += " ";
+					}
+				restoTupla += palabra + espaciosEnBlanco +" | ";
+				espaciosEnBlanco ="";
+			}
+			Console.Write(restoTupla);
+			Console.WriteLine();
 		}
+		
+		private int obtenerNumeroDeColumnas()
+		{
+			int numeroColumnas = 0;
+			ICollection valoresTabla = this.tabla.Values;
+			foreach(ArrayList lista in valoresTabla)
+				for(int contadorDeColumnas=0;contadorDeColumnas <= lista.Count;contadorDeColumnas++)
+					numeroColumnas = contadorDeColumnas;
+			return numeroColumnas+1;
+		}
+		
 		
 	}
 }
